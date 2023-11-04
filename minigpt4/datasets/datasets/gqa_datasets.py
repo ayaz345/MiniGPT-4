@@ -48,7 +48,7 @@ class GQADataset(VQADataset, __DisplMixin):
         question = self.text_processor(ann["question"])
 
         instruction = random.choice(self.instruction_pool).format(question)
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
 
         answers = self.text_processor(ann["answer"])
 

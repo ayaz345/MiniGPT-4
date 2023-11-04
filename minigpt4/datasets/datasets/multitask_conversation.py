@@ -43,13 +43,13 @@ class MultiTaskConversationDataset(Dataset):
     def __getitem__(self, index):
         info = self.ann[index]
 
-        image_file = 'COCO_train2014_{}.jpg'.format(info['id'])
+        image_file = f"COCO_train2014_{info['id']}.jpg"
         image_path = os.path.join(self.vis_root, image_file)
         image = Image.open(image_path).convert("RGB")
         image = self.vis_processor(image)
 
         first_instruction = info['conversations'][0]['value'].replace('<image>', '').replace('\n', '').strip()
-        first_instruction = '<Img><ImageHere></Img> {} '.format(first_instruction)
+        first_instruction = f'<Img><ImageHere></Img> {first_instruction} '
 
         questions = [first_instruction]
         answers = []

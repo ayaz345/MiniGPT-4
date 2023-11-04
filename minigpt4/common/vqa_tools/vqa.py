@@ -41,7 +41,7 @@ class VQA:
         self.qa = {}
         self.qqa = {}
         self.imgToQA = {}
-        if not annotation_file == None and not question_file == None:
+        if annotation_file is not None and question_file is not None:
             print("loading VQA annotations and questions into memory...")
             time_t = datetime.datetime.utcnow()
             dataset = json.load(open(annotation_file, "r"))
@@ -74,7 +74,7 @@ class VQA:
         :return:
         """
         for key, value in self.datset["info"].items():
-            print("%s: %s" % (key, value))
+            print(f"{key}: {value}")
 
     def getQuesIds(self, imgIds=[], quesTypes=[], ansTypes=[]):
         """
@@ -91,9 +91,13 @@ class VQA:
         if len(imgIds) == len(quesTypes) == len(ansTypes) == 0:
             anns = self.dataset["annotations"]
         else:
-            if not len(imgIds) == 0:
+            if len(imgIds) != 0:
                 anns = sum(
-                    [self.imgToQA[imgId] for imgId in imgIds if imgId in self.imgToQA],
+                    (
+                        self.imgToQA[imgId]
+                        for imgId in imgIds
+                        if imgId in self.imgToQA
+                    ),
                     [],
                 )
             else:
@@ -108,8 +112,7 @@ class VQA:
                 if len(ansTypes) == 0
                 else [ann for ann in anns if ann["answer_type"] in ansTypes]
             )
-        ids = [ann["question_id"] for ann in anns]
-        return ids
+        return [ann["question_id"] for ann in anns]
 
     def getImgIds(self, quesIds=[], quesTypes=[], ansTypes=[]):
         """
@@ -126,10 +129,8 @@ class VQA:
         if len(quesIds) == len(quesTypes) == len(ansTypes) == 0:
             anns = self.dataset["annotations"]
         else:
-            if not len(quesIds) == 0:
-                anns = sum(
-                    [self.qa[quesId] for quesId in quesIds if quesId in self.qa], []
-                )
+            if len(quesIds) != 0:
+                anns = sum((self.qa[quesId] for quesId in quesIds if quesId in self.qa), [])
             else:
                 anns = self.dataset["annotations"]
             anns = (
@@ -142,8 +143,7 @@ class VQA:
                 if len(ansTypes) == 0
                 else [ann for ann in anns if ann["answer_type"] in ansTypes]
             )
-        ids = [ann["image_id"] for ann in anns]
-        return ids
+        return [ann["image_id"] for ann in anns]
 
     def loadQA(self, ids=[]):
         """
@@ -166,7 +166,7 @@ class VQA:
             return 0
         for ann in anns:
             quesId = ann["question_id"]
-            print("Question: %s" % (self.qqa[quesId]["question"]))
+            print(f'Question: {self.qqa[quesId]["question"]}')
             for ans in ann["answers"]:
                 print("Answer %d: %s" % (ans["answer_id"], ans["answer"]))
 

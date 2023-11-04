@@ -124,12 +124,12 @@ class MiniGPTBase(BaseModel):
             emb_lens = [emb.shape[1] for emb in emb_lists]
             pad_emb = self.embed_tokens(torch.tensor(self.llama_tokenizer.pad_token_id, device=img_embeds.device))
 
-            max_length = max(emb_lens) if max(emb_lens) < self.max_context_len else self.max_context_len
+            max_length = min(max(emb_lens), self.max_context_len)
             wrapped_embs = pad_emb.expand(len(emb_lens), max_length, -1).clone()
             wrapped_atts = torch.zeros([len(emb_lens), max_length], dtype=torch.int, device=img_embeds.device)
-            
+
             for i, emb in enumerate(emb_lists):
-                length = emb_lens[i] if emb_lens[i] < self.max_context_len else self.max_context_len
+                length = min(emb_lens[i], self.max_context_len)
                 wrapped_embs[i, :length] = emb[:, :length]
                 wrapped_atts[i, :length] = 1
             return wrapped_embs, wrapped_atts
@@ -194,7 +194,9 @@ class MiniGPTBase(BaseModel):
             to_regress_token_ids_list.append(cur_id)
             targets_list.append(cur_target)
 
-        max_len = min(max([target.shape[1] for target in targets_list]), self.max_txt_len)
+        max_len = min(
+            max(target.shape[1] for target in targets_list), self.max_txt_len
+        )
         to_regress_token_ids = torch.ones([batch_size, max_len],
                                           dtype=cur_id.dtype, device=self.device) * self.llama_tokenizer.pad_token_id
         targets = torch.ones([batch_size, max_len],
@@ -308,11 +310,11 @@ class MiniGPTBase(BaseModel):
         return {"loss": loss}
 
     def embed_tokens(self, token_ids):
-        if hasattr(self.llama_model.base_model, 'model'): ## lora wrapped model
-            embeds = self.llama_model.base_model.model.model.embed_tokens(token_ids)
-        else:
-            embeds = self.llama_model.base_model.embed_tokens(token_ids)
-        return embeds
+        return (
+            self.llama_model.base_model.model.model.embed_tokens(token_ids)
+            if hasattr(self.llama_model.base_model, 'model')
+            else self.llama_model.base_model.embed_tokens(token_ids)
+        )
 
     @torch.no_grad()
     def generate(
@@ -342,7 +344,7 @@ class MiniGPTBase(BaseModel):
         batch_embs = [self.get_context_emb(text, img_list) for text, img_list in zip(texts, image_lists)]
 
         batch_size = len(batch_embs)
-        max_len = max([emb.shape[1] for emb in batch_embs])
+        max_len = max(emb.shape[1] for emb in batch_embs)
         emb_dim = batch_embs[0].shape[2]
         dtype = batch_embs[0].dtype
         device = batch_embs[0].device

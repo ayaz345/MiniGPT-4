@@ -61,8 +61,8 @@ class BaseModel(nn.Module):
 
         msg = self.load_state_dict(state_dict, strict=False)
 
-        logging.info("Missing keys {}".format(msg.missing_keys))
-        logging.info("load checkpoint from %s" % url_or_filename)
+        logging.info(f"Missing keys {msg.missing_keys}")
+        logging.info(f"load checkpoint from {url_or_filename}")
 
         return msg
 
@@ -86,7 +86,7 @@ class BaseModel(nn.Module):
     def default_config_path(cls, model_type):
         assert (
             model_type in cls.PRETRAINED_MODEL_CONFIG_DICT
-        ), "Unknown model type {}".format(model_type)
+        ), f"Unknown model type {model_type}"
         return get_abs_path(cls.PRETRAINED_MODEL_CONFIG_DICT[model_type])
 
     def load_checkpoint_from_config(self, cfg, **kwargs):
@@ -97,8 +97,7 @@ class BaseModel(nn.Module):
         When loading the pretrained model, each task-specific architecture may define their
         own load_from_pretrained() method.
         """
-        load_finetuned = cfg.get("load_finetuned", True)
-        if load_finetuned:
+        if load_finetuned := cfg.get("load_finetuned", True):
             finetune_path = cfg.get("finetuned", None)
             assert (
                 finetune_path is not None
@@ -120,13 +119,12 @@ class BaseModel(nn.Module):
             for x in p.shape:
                 w *= x
             tot += w
-        if return_str:
-            if tot >= 1e6:
-                return "{:.1f}M".format(tot / 1e6)
-            else:
-                return "{:.1f}K".format(tot / 1e3)
-        else:
+        if not return_str:
             return tot
+        if tot >= 1e6:
+            return "{:.1f}M".format(tot / 1e6)
+        else:
+            return "{:.1f}K".format(tot / 1e3)
 
     def maybe_autocast(self, dtype=torch.float16):
         # if on cpu, don't use autocast
@@ -168,8 +166,7 @@ class BaseModel(nn.Module):
         logging.info('Loading VIT Done')
         return visual_encoder, ln_vision
 
-    def init_llm(cls, llama_model_path, low_resource=False, low_res_device=0, lora_r=0,
-                 lora_target_modules=["q_proj","v_proj"], **lora_kargs):
+    def init_llm(self, llama_model_path, low_resource=False, low_res_device=0, lora_r=0, lora_target_modules=["q_proj","v_proj"], **lora_kargs):
         logging.info('Loading LLAMA')
         llama_tokenizer = LlamaTokenizer.from_pretrained(llama_model_path, use_fast=False)
         llama_tokenizer.pad_token = "$$"
@@ -223,7 +220,7 @@ class BaseModel(nn.Module):
         msg = self.load_state_dict(state_dict, strict=False)
 
         # logging.info("Missing keys {}".format(msg.missing_keys))
-        logging.info("load checkpoint from %s" % url_or_filename)
+        logging.info(f"load checkpoint from {url_or_filename}")
 
         return msg
 

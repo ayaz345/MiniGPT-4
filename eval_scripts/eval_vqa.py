@@ -44,7 +44,7 @@ if 'okvqa' in args.dataset:
     img_path = cfg.evaluation_datasets_cfg["okvqa"]["img_path"]
     batch_size = cfg.evaluation_datasets_cfg["okvqa"]["batch_size"]
     max_new_tokens = cfg.evaluation_datasets_cfg["okvqa"]["max_new_tokens"]
-    
+
 
     evaluation_annntation_path = os.path.join(eval_file_path, "okvqa_test_split.json")
     with open(evaluation_annntation_path) as f:
@@ -101,14 +101,11 @@ if 'vizwiz' in args.dataset:
             result = dict()
             result['answer'] = answer.replace('<unk>','').strip()
             minigpt4_predict.append(result)
-            count=0
             gt_answer = gt_answer.split('_')
-            for gt in gt_answer:
-                if gt.lower() == answer.lower():
-                    count += 1
+            count = sum(1 for gt in gt_answer if gt.lower() == answer.lower())
             acc = min(count/3.0, 1.0)
             total_acc.append(acc)
-        
+
     file_save_path = os.path.join(save_path, "vizwiz.json")
     with open(file_save_path,'w') as f:
         json.dump(minigpt4_predict, f)
@@ -134,7 +131,10 @@ if 'iconvqa' in args.dataset:
         for candidate in candidates:
             candidate.extend(['none'] * (max(num_cand) - len(candidate)))
         candidates = [list(x) for x in zip(*candidates)]
-        instructions = ["<s>[INST] <Img><ImageHere></Img> {} [/INST]".format(text) for text in texts]
+        instructions = [
+            f"<s>[INST] <Img><ImageHere></Img> {text} [/INST]"
+            for text in texts
+        ]
         answer_ranks = model.multi_select(images, instructions, candidates, num_cand=num_cand)
         for idx, answer in enumerate(answers):
             if answer_ranks[idx][0] == answer:
@@ -227,7 +227,7 @@ if 'hm' in args.dataset:
 
     for images, texts, labels in tqdm(eval_dataloader):
         texts = prepare_texts(texts, conv_temp)  # warp the texts with conversation template
-        
+
         answers = model.generate(images, texts, max_new_tokens=max_new_tokens, do_sample=False)
 
         for answer, label in zip(answers, labels):

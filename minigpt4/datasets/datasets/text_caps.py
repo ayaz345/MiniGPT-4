@@ -61,7 +61,7 @@ class TextCapDataset(Dataset):
     def __getitem__(self, index):
         info = self.ann["data"][index]
 
-        image_file = '{}.jpg'.format(info['image_id'])
+        image_file = f"{info['image_id']}.jpg"
 
         image_path = os.path.join(self.vis_root, image_file)
         image = Image.open(image_path).convert("RGB")
@@ -69,7 +69,7 @@ class TextCapDataset(Dataset):
 
         caption = info["caption_str"]
         caption = self.text_processor(caption)
-        instruction = "<Img><ImageHere></Img> [caption] {} ".format(random.choice(self.instruction_pool))
+        instruction = f"<Img><ImageHere></Img> [caption] {random.choice(self.instruction_pool)} "
         return {
             "image": image,
             "instruction_input": instruction,

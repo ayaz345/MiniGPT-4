@@ -40,8 +40,7 @@ def parse_args():
              "in xxx=yyy format will be merged into config file (deprecate), "
              "change to --cfg-options instead.",
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 random.seed(42)
@@ -55,7 +54,7 @@ print('Initializing Chat')
 args = parse_args()
 cfg = Config(args)
 
-device = 'cuda:{}'.format(args.gpu_id)
+device = f'cuda:{args.gpu_id}'
 
 model_config = cfg.model_cfg
 model_config.device_8bit = args.gpu_id
@@ -86,15 +85,13 @@ def extract_substrings(string):
 
     pattern = r'<p>(.*?)\}(?!<)'
     matches = re.findall(pattern, string)
-    substrings = [match for match in matches]
-
-    return substrings
+    return list(matches)
 
 
 def is_overlapping(rect1, rect2):
     x1, y1, x2, y2 = rect1
     x3, y3, x4, y4 = rect2
-    return not (x2 < x3 or x1 > x4 or y2 < y3 or y1 > y4)
+    return x2 >= x3 and x1 <= x4 and y2 >= y3 and y1 <= y4
 
 
 def computeIoU(bbox1, bbox2):
@@ -108,13 +105,12 @@ def computeIoU(bbox1, bbox2):
     bbox1_area = (x2 - x1 + 1) * (y2 - y1 + 1)
     bbox2_area = (x4 - x3 + 1) * (y4 - y3 + 1)
     union_area = bbox1_area + bbox2_area - intersection_area
-    iou = intersection_area / union_area
-    return iou
+    return intersection_area / union_area
 
 
 def save_tmp_img(visual_img):
     file_name = "".join([str(random.randint(0, 9)) for _ in range(5)]) + ".jpg"
-    file_path = "/tmp/gradio" + file_name
+    file_path = f"/tmp/gradio{file_name}"
     visual_img.save(file_path)
     return file_path
 
@@ -132,11 +128,9 @@ def mask2bbox(mask):
         # Get the top, bottom, left, and right boundaries
         rmin, rmax = np.where(rows)[0][[0, -1]]
         cmin, cmax = np.where(cols)[0][[0, -1]]
-        bbox = '{{<{}><{}><{}><{}>}}'.format(cmin, rmin, cmax, rmax)
+        return '{{<{}><{}><{}><{}>}}'.format(cmin, rmin, cmax, rmax)
     else:
-        bbox = ''
-
-    return bbox
+        return ''
 
 
 def escape_markdown(text):
@@ -231,7 +225,7 @@ def visualize_all_bbox_together(image, generation):
         if len(integers) == 4:  # it is refer
             mode = 'single'
 
-            entities = list()
+            entities = []
             x0, y0, x1, y1 = int(integers[0]), int(integers[1]), int(integers[2]), int(integers[3])
             left = x0 / bounding_box_size * image_width
             bottom = y0 / bounding_box_size * image_height
@@ -291,7 +285,7 @@ def visualize_all_bbox_together(image, generation):
 
     color_id = -1
     for entity_idx, entity_name in enumerate(entities):
-        if mode == 'single' or mode == 'identify':
+        if mode in ['single', 'identify']:
             bboxes = entity_name
             bboxes = [bboxes]
         else:
@@ -340,12 +334,7 @@ def visualize_all_bbox_together(image, generation):
                     for i in range(text_bg_y1, text_bg_y2):
                         for j in range(text_bg_x1, text_bg_x2):
                             if i < image_h and j < image_w:
-                                if j < text_bg_x1 + 1.35 * c_width:
-                                    # original color
-                                    bg_color = color
-                                else:
-                                    # white
-                                    bg_color = [255, 255, 255]
+                                bg_color = color if j < text_bg_x1 + 1.35 * c_width else [255, 255, 255]
                                 new_image[i, j] = (alpha * new_image[i, j] + (1 - alpha) * np.array(bg_color)).astype(
                                     np.uint8)
 
@@ -360,8 +349,7 @@ def visualize_all_bbox_together(image, generation):
     if mode == 'all':
         def color_iterator(colors):
             while True:
-                for color in colors:
-                    yield color
+                yield from colors
 
         color_gen = color_iterator(colors)
 
@@ -409,11 +397,7 @@ def example_trigger(text_input, image, upload_flag, replace_flag, img_list):
 
 
 def gradio_ask(user_message, chatbot, chat_state, gr_img, img_list, upload_flag, replace_flag):
-    if len(user_message) == 0:
-        text_box_show = 'Input should not be empty!'
-    else:
-        text_box_show = ''
-
+    text_box_show = 'Input should not be empty!' if len(user_message) == 0 else ''
     if isinstance(gr_img, dict):
         gr_img, mask = gr_img['image'], gr_img['mask']
     else:

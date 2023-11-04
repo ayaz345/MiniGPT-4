@@ -44,16 +44,17 @@ class OCRVQADataset(Dataset):
             ext = os.path.splitext(data[k]['imageURL'])[1]
             imageFile = k + ext
             assert len(data[k]['questions']) == len(data[k]['answers'])
-            for q, a in zip(data[k]['questions'], data[k]['answers']):
-                processed_data.append(
-                    {'question': q,
-                     'answer': a,
-                     'image_path': imageFile,
-                     'image_id': k,
-                     'title': data[k]['title'],
-                     'genre': data[k]['genre'],
-                     }
-                )
+            processed_data.extend(
+                {
+                    'question': q,
+                    'answer': a,
+                    'image_path': imageFile,
+                    'image_id': k,
+                    'title': data[k]['title'],
+                    'genre': data[k]['genre'],
+                }
+                for q, a in zip(data[k]['questions'], data[k]['answers'])
+            )
         return processed_data
 
     def __len__(self):
@@ -67,7 +68,7 @@ class OCRVQADataset(Dataset):
         answer = self.text_processor(sample["answer"])
 
         instruction = random.choice(self.instruction_pool).format(question)
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
         return {
             "image": image,
             "instruction_input": instruction,

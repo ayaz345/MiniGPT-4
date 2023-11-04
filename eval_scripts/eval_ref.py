@@ -70,6 +70,7 @@ for dataset in args.dataset:
                 else:
                     resamples.append({'img_id': img_id, 'sents': [question.replace('[refer] give me the location of','').strip()]})
         if args.resample:
+            pattern = r'\{<\d{1,3}><\d{1,3}><\d{1,3}><\d{1,3}>\}'
             for i in range(20):
                 data = RefCOCOEvalData(resamples, vis_processor, img_path)
                 resamples = []
@@ -79,15 +80,14 @@ for dataset in args.dataset:
                     answers = model.generate(images, texts, max_new_tokens=max_new_tokens, do_sample=False)
                     for answer, img_id, question in zip(answers, img_ids, questions):
                         answer = answer.replace("<unk>","").replace(" ","").strip()
-                        pattern = r'\{<\d{1,3}><\d{1,3}><\d{1,3}><\d{1,3}>\}'
                         if re.match(pattern, answer) or i == 4:
                             minigpt4_predict[img_id].append(answer)
                         else:
                             resamples.append({'img_id': img_id, 'sents': [question.replace('[refer] give me the location of','').strip()]})
-                            
-                if len(resamples) == 0:
+
+                if not resamples:
                     break
-        
+
         file_save_path = os.path.join(save_path,f"{args.dataset}_{split}.json")
         with open(file_save_path,'w') as f:
             json.dump(minigpt4_predict, f)
@@ -124,5 +124,5 @@ for dataset in args.dataset:
                         count+=1
                 except:
                     continue
-        
+
         print(f'{dataset} {split}:', count / total * 100, flush=True)
