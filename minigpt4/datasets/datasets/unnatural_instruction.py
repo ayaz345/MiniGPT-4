@@ -38,7 +38,7 @@ class UnnaturalDataset(Dataset):
         constraints = info["constraints"]
         answer = info["output"]
         if constraints != None:
-            instruction = instruction+" "+constraints
+            instruction = f"{instruction} {constraints}"
 
         return {
             "instruction_input": self.text_processor(instruction),

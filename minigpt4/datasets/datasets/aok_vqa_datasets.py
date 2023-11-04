@@ -61,7 +61,7 @@ class AOKVQADataset(VQADataset, __DisplMixin):
 
         answer_weight = {}
         for answer in ann[answer_key]:
-            if answer in answer_weight.keys():
+            if answer in answer_weight:
                 answer_weight[answer] += 1 / len(ann[answer_key])
             else:
                 answer_weight[answer] = 1 / len(ann[answer_key])
@@ -82,7 +82,7 @@ class AOKVQADataset(VQADataset, __DisplMixin):
         question = self.text_processor(data["question"])
         instruction = random.choice(self.instruction_pool).format(question)
 
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
         answer = self.text_processor(data['answer'])
 
         return {

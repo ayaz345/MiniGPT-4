@@ -79,8 +79,8 @@ class MiniGPT4(MiniGPTBase):
                 raw_prompts = f.read().splitlines()
             filted_prompts = [raw_prompt for raw_prompt in raw_prompts if "<ImageHere>" in raw_prompt]
             self.prompt_list = [prompt_template.format(p) for p in filted_prompts]
-            print('Load {} training prompts'.format(len(self.prompt_list)))
-            print('Prompt Example \n{}'.format(random.choice(self.prompt_list)))
+            print(f'Load {len(self.prompt_list)} training prompts')
+            print(f'Prompt Example \n{random.choice(self.prompt_list)}')
         else:
             self.prompt_list = []
 
@@ -186,9 +186,8 @@ class MiniGPT4(MiniGPTBase):
             device_8bit=device_8bit,
         )
 
-        ckpt_path = cfg.get("ckpt", "")  # load weights of MiniGPT-4
-        if ckpt_path:
-            print("Load MiniGPT-4 Checkpoint: {}".format(ckpt_path))
+        if ckpt_path := cfg.get("ckpt", ""):
+            print(f"Load MiniGPT-4 Checkpoint: {ckpt_path}")
             ckpt = torch.load(ckpt_path, map_location="cpu")
             msg = model.load_state_dict(ckpt['model'], strict=False)
 

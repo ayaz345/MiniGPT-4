@@ -33,8 +33,7 @@ def parse_args():
         "in xxx=yyy format will be merged into config file (deprecate), "
         "change to --cfg-options instead.",
     )
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def setup_seeds(config):
@@ -62,7 +61,7 @@ cfg = Config(args)
 model_config = cfg.model_cfg
 model_config.device_8bit = args.gpu_id
 model_cls = registry.get_model_class(model_config.arch)
-model = model_cls.from_config(model_config).to('cuda:{}'.format(args.gpu_id))
+model = model_cls.from_config(model_config).to(f'cuda:{args.gpu_id}')
 
 CONV_VISION = conv_dict[model_config.model_type]
 
@@ -70,10 +69,18 @@ vis_processor_cfg = cfg.datasets_cfg.cc_sbu_align.vis_processor.train
 vis_processor = registry.get_processor_class(vis_processor_cfg.name).from_config(vis_processor_cfg)
 
 stop_words_ids = [[835], [2277, 29937]]
-stop_words_ids = [torch.tensor(ids).to(device='cuda:{}'.format(args.gpu_id)) for ids in stop_words_ids]
+stop_words_ids = [
+    torch.tensor(ids).to(device=f'cuda:{args.gpu_id}')
+    for ids in stop_words_ids
+]
 stopping_criteria = StoppingCriteriaList([StoppingCriteriaSub(stops=stop_words_ids)])
 
-chat = Chat(model, vis_processor, device='cuda:{}'.format(args.gpu_id), stopping_criteria=stopping_criteria)
+chat = Chat(
+    model,
+    vis_processor,
+    device=f'cuda:{args.gpu_id}',
+    stopping_criteria=stopping_criteria,
+)
 print('Initialization Finished')
 
 

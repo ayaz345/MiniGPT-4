@@ -60,7 +60,7 @@ class COCOVQADataset(VQADataset, __DisplMixin):
 
         answer_weight = {}
         for answer in ann["answer"]:
-            if answer in answer_weight.keys():
+            if answer in answer_weight:
                 answer_weight[answer] += 1 / len(ann["answer"])
             else:
                 answer_weight[answer] = 1 / len(ann["answer"])
@@ -81,7 +81,7 @@ class COCOVQADataset(VQADataset, __DisplMixin):
     def __getitem__(self, index):
         data = self.get_data(index)
         instruction = random.choice(self.instruction_pool).format(data['question'])
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
 
         return {
             "image": data['image'],
@@ -131,10 +131,10 @@ class COCOVQAEvalDataset(VQAEvalDataset, __DisplMixin):
 
         image = self.vis_processor(image)
         question = self.text_processor(ann["question"])
-        
+
         instruction = random.choice(self.instruction_pool).format(question)
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
-        
+        instruction = f"<Img><ImageHere></Img> {instruction} "
+
         return {
             "image": image,
             'image_path': image_path,

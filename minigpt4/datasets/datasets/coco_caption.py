@@ -114,7 +114,7 @@ class EvalCaptionData(torch.utils.data.Dataset):
         img_file = data['image'].split('/')[-1]
         image_path = os.path.join(self.root_path, img_file)
         image = Image.open(image_path).convert('RGB')
-            
+
         image = self.vis_processor(image)
-        question = f"[caption] please describe this image?"
+        question = "[caption] please describe this image?"
         return image, question, image_id

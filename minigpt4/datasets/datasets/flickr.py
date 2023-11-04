@@ -46,14 +46,14 @@ class GroundedDetailDataset(Dataset):
         info = self.ann[index]
 
         # image_file = 'COCO_train2014_{}.jpg'.format(info['image_id'])
-        image_file = '{}.jpg'.format(info['image_id'])
+        image_file = f"{info['image_id']}.jpg"
         image_path = os.path.join(self.vis_root, image_file)
         image = Image.open(image_path).convert("RGB")
         image = self.vis_processor(image)
 
         answer = info['grounded_caption']
         instruction = random.choice(self.instruction_pool)
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
 
         return {
             "image": image,
@@ -89,7 +89,7 @@ class CaptionToObjectDataset(Dataset):
     def __getitem__(self, index):
         info = self.ann[index]
 
-        image_file = '{}.jpg'.format(info['image_id'])
+        image_file = f"{info['image_id']}.jpg"
         image_path = os.path.join(self.vis_root, image_file)
         image = Image.open(image_path).convert("RGB")
         image = self.vis_processor(image)
@@ -99,7 +99,7 @@ class CaptionToObjectDataset(Dataset):
 
         instruction = random.choice(self.instruction_pool).format(input)
 
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
 
         print("CaptionToObject instruction", instruction)
         print("CaptionToObject answer", answer)
@@ -137,16 +137,16 @@ class PhraseToObjectDataset(Dataset):
 
     def __getitem__(self, index):
         info = self.ann[index]
-        image_file = '{}.jpg'.format(info['image_id'])
+        image_file = f"{info['image_id']}.jpg"
         image_path = os.path.join(self.vis_root, image_file)
         image = Image.open(image_path).convert("RGB")
         image = self.vis_processor(image)
 
         input = info["phrase"]
-        answer = "<p>"+input+"</p> "+info["bbox"]
+        answer = f"<p>{input}</p> " + info["bbox"]
         instruction = random.choice(self.instruction_pool).format(input)
 
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
 
         print("PhraseToObject instruction", instruction)
         print("PhraseToObject answer", answer)

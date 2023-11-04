@@ -130,9 +130,8 @@ class MiniGPTv2(MiniGPTBase):
             max_context_len=max_context_len,
         )
 
-        ckpt_path = cfg.get("ckpt", "")  # load weights of MiniGPT-4
-        if ckpt_path:
-            print("Load Minigpt-4-LLM Checkpoint: {}".format(ckpt_path))
+        if ckpt_path := cfg.get("ckpt", ""):
+            print(f"Load Minigpt-4-LLM Checkpoint: {ckpt_path}")
             ckpt = torch.load(ckpt_path, map_location="cpu")
             msg = model.load_state_dict(ckpt['model'], strict=False)
 

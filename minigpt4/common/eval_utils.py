@@ -36,8 +36,10 @@ def eval_parser():
 
 def prepare_texts(texts, conv_temp):
     convs = [conv_temp.copy() for _ in range(len(texts))]
-    [conv.append_message(
-        conv.roles[0], '<Img><ImageHere></Img> {}'.format(text)) for conv, text in zip(convs, texts)]
+    [
+        conv.append_message(conv.roles[0], f'<Img><ImageHere></Img> {text}')
+        for conv, text in zip(convs, texts)
+    ]
     [conv.append_message(conv.roles[1], None) for conv in convs]
     texts = [conv.get_prompt() for conv in convs]
     return texts
@@ -72,5 +74,4 @@ def computeIoU(bbox1, bbox2):
     bbox1_area = (x2 - x1 + 1) * (y2 - y1 + 1)
     bbox2_area = (x4 - x3 + 1) * (y4 - y3 + 1)
     union_area = bbox1_area + bbox2_area - intersection_area
-    iou = intersection_area / union_area
-    return iou
+    return intersection_area / union_area

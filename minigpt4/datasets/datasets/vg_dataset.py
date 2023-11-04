@@ -78,7 +78,7 @@ class ReferVisualGenomeDataset(Dataset):
         data = self.preprocess(index)
         instruction = random.choice(self.instruction_pool).format(data['refer_sentence'])
 
-        instruction = "<Img><ImageHere></Img> {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> {instruction} "
 
         return {
             "image": data['image'],

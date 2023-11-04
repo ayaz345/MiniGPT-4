@@ -39,19 +39,13 @@ class Conversation:
         if self.sep_style == SeparatorStyle.SINGLE:
             ret = self.system + self.sep
             for role, message in self.messages:
-                if message:
-                    ret += role + message + self.sep
-                else:
-                    ret += role
+                ret += role + message + self.sep if message else role
             return ret
         elif self.sep_style == SeparatorStyle.TWO:
             seps = [self.sep, self.sep2]
             ret = self.system + seps[0]
             for i, (role, message) in enumerate(self.messages):
-                if message:
-                    ret += role + message + seps[i % 2]
-                else:
-                    ret += role
+                ret += role + message + seps[i % 2] if message else role
             return ret
         else:
             raise ValueError(f"Invalid style: {self.sep_style}")
@@ -100,11 +94,10 @@ class StoppingCriteriaSub(StoppingCriteria):
         self.stops = stops
 
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor):
-        for stop in self.stops:
-            if torch.all(input_ids[:, -len(stop):] == stop).item():
-                return True
-
-        return False
+        return any(
+            torch.all(input_ids[:, -len(stop) :] == stop).item()
+            for stop in self.stops
+        )
 
 
 CONV_VISION_Vicuna0 = Conversation(
@@ -168,7 +161,7 @@ class Chat:
         begin_idx = max(0, current_max_len - max_length)
         embs = embs[:, begin_idx:]
 
-        generation_kwargs = dict(
+        return dict(
             inputs_embeds=embs,
             max_new_tokens=max_new_tokens,
             stopping_criteria=self.stopping_criteria,
@@ -180,7 +173,6 @@ class Chat:
             length_penalty=length_penalty,
             temperature=float(temperature),
         )
-        return generation_kwargs
 
     def answer(self, conv, img_list, **kargs):
         generation_dict = self.answer_prepare(conv, img_list, **kargs)
@@ -227,7 +219,5 @@ class Chat:
     def upload_img(self, image, conv, img_list):
         conv.append_message(conv.roles[0], "<Img><ImageHere></Img>")
         img_list.append(image)
-        msg = "Received."
-
-        return msg
+        return "Received."
 

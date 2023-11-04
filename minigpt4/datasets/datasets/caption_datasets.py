@@ -73,11 +73,9 @@ class COCOCaptionDataset(BaseDataset, __DisplMixin):
         self.img_ids = {}
         n = 0
 
-        self.filter_anntation = []
-        
-        for ann in self.annotation:
-            if "train" in ann["image"]:
-                self.filter_anntation.append(ann)
+        self.filter_anntation = [
+            ann for ann in self.annotation if "train" in ann["image"]
+        ]
         self.annotation = self.filter_anntation
 
         for ann in self.annotation:
@@ -118,7 +116,7 @@ class COCOCaptionDataset(BaseDataset, __DisplMixin):
         caption = self.text_processor(ann["caption"])
 
         instruction = random.choice(self.instruction_pool)
-        instruction = "<Img><ImageHere></Img> [caption] {} ".format(instruction)
+        instruction = f"<Img><ImageHere></Img> [caption] {instruction} "
 
         return {
             "image": image,

@@ -191,8 +191,8 @@ class VQAEval:
         ]
 
     def evaluate(self, quesIds=None):
-        if quesIds == None:
-            quesIds = [quesId for quesId in self.params["question_id"]]
+        if quesIds is None:
+            quesIds = list(self.params["question_id"])
         gts = {}
         res = {}
         for quesId in quesIds:
@@ -249,8 +249,10 @@ class VQAEval:
     def processPunctuation(self, inText):
         outText = inText
         for p in self.punct:
-            if (p + " " in inText or " " + p in inText) or (
-                re.search(self.commaStrip, inText) != None
+            if (
+                f"{p} " in inText
+                or f" {p}" in inText
+                or re.search(self.commaStrip, inText) != None
             ):
                 outText = outText.replace(p, "")
             else:
@@ -265,13 +267,10 @@ class VQAEval:
             word = self.manualMap.setdefault(word, word)
             if word not in self.articles:
                 outText.append(word)
-            else:
-                pass
         for wordId, word in enumerate(outText):
             if word in self.contractions:
                 outText[wordId] = self.contractions[word]
-        outText = " ".join(outText)
-        return outText
+        return " ".join(outText)
 
     def setAccuracy(self, accQA, accQuesType, accAnsType):
         self.accuracy["overall"] = round(100 * float(sum(accQA)) / len(accQA), self.n)
